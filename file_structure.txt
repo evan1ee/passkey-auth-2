@@ -1,0 +1,77 @@
+File Structure:
+
+project-root/
+├── app/
+│   ├── api/
+│   │   ├── auth/
+│   │   │   ├── register/
+│   │   │   │   └── route.ts             # Registration API route
+│   │   │   ├── login/
+│   │   │   │   └── route.ts                # Login API route
+│   │   │   ├── logout/
+│   │   │   │   └── route.ts               # Logout API route
+│   │   │   ├── user/
+│   │   │   │   └── route.ts                 # Get current user API route
+│   │   │   ├── registration-options/
+│   │   │   │   └── route.ts         # API route to generate registration options
+│   │   │   ├── verify-registration/
+│   │   │   │   └── route.ts        # API route to verify registration response
+│   │   │   ├── authentication-options/
+│   │   │   │   └── route.ts       # API route to generate authentication options
+│   │   │   ├── verify-authentication/
+│   │   │   │   └── route.ts      # API route to verify authentication response
+│   ├── auth/
+│   │   └── layout.tsx                 # Auth layout component
+│   ├── login/
+│   │   └── page.tsx                     # Login page component
+│   ├── register/
+│   │   └── page.tsx                    # Register page component
+│   └── protected/
+│       └── page.tsx                    # Example protected page
+├── components/
+│   ├── auth/
+│   │   ├── RegistrationForm.tsx         # Registration form component
+│   │   ├── LoginForm.tsx                # Login form component
+│   │   ├── ProtectedRoute.tsx           # Protected route wrapper component
+│   │   ├── AuthError.tsx                # Auth error display component
+│   │   └── AuthLoading.tsx              # Auth loading component
+│   └── ui/
+│       └── button.tsx                   # UI Button component (from components.json)
+├── lib/
+│   ├── auth.ts                        # Authentication utility functions
+│   ├── session.ts                     # Session management utilities (iron-session)
+│   ├── types.ts                       # Type definitions
+│   └── utils.ts                       # Utility functions (from components.json)
+├── prisma/
+│   └── schema.prisma                  # Prisma schema
+├── public/
+│   └── favicon.ico                    # Favicon
+├── styles/
+│   └── globals.css                    # Global styles
+├── tailwind.config.ts                 # Tailwind CSS configuration
+├── next.config.ts                     # Next.js configuration
+├── tsconfig.json                      # TypeScript configuration
+├── package.json                       # Project dependencies
+├── pnpm-lock.yaml                     # Package lock file (or yarn.lock, package-lock.json)
+└── README.md                          # Project README
+
+---
+Explanation:
+
+- `app/api/auth`: Contains all API routes related to authentication.
+    - `register`, `login`, `logout`, `user`: Standard authentication endpoints.
+    - `registration-options`, `verify-registration`, `authentication-options`, `verify-authentication`: API routes for SimpleWebAuthn passkey flow.
+- `app/auth/layout.tsx`:  Layout component to wrap authentication pages, handles error states.
+- `app/login/page.tsx`, `app/register/page.tsx`: Pages for login and registration forms.
+- `app/protected/page.tsx`: Example protected page to demonstrate route protection.
+- `components/auth`: Reusable authentication components.
+    - `RegistrationForm`, `LoginForm`: Forms for user registration and login.
+    - `ProtectedRoute`: Higher-order component to protect routes.
+    - `AuthError`, `AuthLoading`: Components for displaying errors and loading states.
+- `lib`: Utility and shared code.
+    - `auth.ts`:  Helper functions for authentication logic (e.g., user validation).
+    - `session.ts`:  Session management using iron-session.
+    - `types.ts`:  TypeScript type definitions for the project.
+- `prisma/schema.prisma`: Prisma schema defining the database models.
+- Configuration files: `next.config.ts`, `tailwind.config.ts`, `tsconfig.json`, `prisma/schema.prisma`.
+- `public`, `styles`, `components/ui`: Standard Next.js project directories.
