@@ -40,8 +40,6 @@ export async function POST(request: Request) {
       challenge
     );
 
-    // console.log("Registration verification response:", verificationResponse);
-
     // Return success response
     return NextResponse.json(
       {
@@ -49,6 +47,8 @@ export async function POST(request: Request) {
         data: {
           credentialId: verificationResponse?.credential.id,
           publicKey: verificationResponse?.credential.publicKey,
+          counter: verificationResponse?.credential.counter,
+          transports: verificationResponse?.credential.transports, // Convert array to string
         }
       },
       { status: 200 }

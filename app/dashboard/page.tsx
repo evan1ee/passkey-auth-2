@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>(''); // Error state
   const [credentialId, setCredentialId] = useState<string>('');
-  const [publicKey, setPublicKey] =  useState<any>('');
+  const [publicKey, setPublicKey] =  useState<any>(null);
 
   // Fetch session info
   useEffect(() => {
@@ -65,6 +65,7 @@ export default function DashboardPage() {
       });
       const result = await Response.json();
       console.log(result);
+
       if (result.success) {
         setCredentialId(result.data.credentialId);
         setPublicKey(result.data.publicKey);
