@@ -70,28 +70,30 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
+  <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Dashboard</h2>
+
     <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100">
     <h3 className="text-lg font-semibold text-gray-800">Session Information</h3>
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 rounded-lg">
+          <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">User ID</p>
             <p className="text-gray-800 truncate">{userId}</p>
           </div>
-          <div className="p-3 bg-gray-50 rounded-lg">
+          <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">Email</p>
             <p className="text-gray-800 truncate">{email}</p>
           </div>
         </div>
   
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-500">Webauth Available</p>
+          <div className="p-3 bg-gray-50 rounded-xl">
+            <p className="text-sm font-medium text-gray-500 rounded-xl">Webauth Available</p>
             <p className={isAvailable ? 'text-green-600' : 'text-red-600'}>
               {isAvailable ? 'Available' : 'Unavailable'}
             </p>
           </div>
-          <div className="p-3 bg-gray-50 rounded-lg">
+          <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">Challenge</p>
             <p className="text-gray-800 break-all">{challenge}</p>
           </div>
@@ -110,7 +112,7 @@ export default function DashboardPage() {
         
         <button
           onClick={handleVerifyCredential}
-          className="flex-1 py-3 px-6 bg-blue-500 border border-blue-500 rounded-xl text-white hover:bg-blue-600 transition-colors duration-200"
+          className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
         >
           <span className="block text-sm font-semibold">2. Verify Credential</span>
         </button>
@@ -120,7 +122,7 @@ export default function DashboardPage() {
   
       <div className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Credential</h3>
+          <h3 className="text-lg font-semibold text-gray-800">1. Credential</h3>
           <div className="bg-gray-50 rounded-xl p-4">
             {webauthnCredential ? (
               <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm">
@@ -133,17 +135,15 @@ export default function DashboardPage() {
         </div>
   
         {error && (
-          <div className="bg-red-50 p-4 rounded-lg flex items-center">
-            <svg className="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-            </svg>
+          <div className="bg-red-50 p-4 rounded-xl flex items-center">
+            
             <span className="text-red-700 text-sm">{error}</span>
           </div>
         )}
   
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">Verification Response</h3>
-          <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm">
+          <h3 className="text-lg font-semibold text-gray-800">2. Verification Response</h3>
+          <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm max-h-96">
             {JSON.stringify(verificationResponse, null, 2)}
           </pre>
         </div>
