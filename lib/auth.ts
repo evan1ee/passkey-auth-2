@@ -48,7 +48,7 @@ export async function verifyRegistration(credential: any, challenge: string) {
   if (!verification.verified) {
     throw new Error("Registration verification failed");
   }
-  return  verification.registrationInfo;
+  return  verification;
 }
 
 
