@@ -85,8 +85,8 @@ export default function DashboardPage() {
       <div className="space-y-2">
         <p><strong>User ID:</strong> {userId}</p>
         <p><strong>Email:</strong> {email}</p>
-        <p><strong>Challenge:</strong> {challenge}</p>
         {<p><strong>Webauth Available:</strong> {isAvailable ? 'Yes' : 'No'}</p>}
+        <p><strong>Challenge:</strong> {challenge}</p>
         <hr className="my-4" />
 
         <button
