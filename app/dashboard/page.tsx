@@ -57,7 +57,7 @@ export default function DashboardPage() {
   };
 
 
-  const handleVerify = async () => {
+  const handleVerifyCredential = async () => {
     const Response = await fetch('/api/register', {
       method: 'POST',
       headers: {
@@ -69,13 +69,11 @@ export default function DashboardPage() {
     const result = await Response.json();
     console.log(result);
     if (result.success) {
-      setVerificationResponse(result.data);
+      setVerificationResponse(result.data.verificationResponse);
     } else {
       setError('Error verifying WebAuthn credential: ' + result.error);
     }
   }
-
-
 
   return (
     <div className="mx-20 my-10">
@@ -97,7 +95,7 @@ export default function DashboardPage() {
         </button>
 
         <button
-          onClick={handleVerify}
+          onClick={handleVerifyCredential}
           className="mx-5 bg-blue-500 text-white px-4 py-2 rounded"
         >
           2. Verify Credential
