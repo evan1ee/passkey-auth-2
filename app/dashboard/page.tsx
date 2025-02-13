@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { checkWebAuthnAvailability, createWebAuthnCredential } from "@/lib/webauth";
+import LogoutButton from "@/components/LogoutButton";
 
 
 export default function DashboardPage() {
@@ -70,7 +71,11 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
-      <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Dashboard</h2>
+      
+      <div className="flex justify-between items-center  mb-6">
+      <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">Dashboard</h2>
+        <LogoutButton  />
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100">
         <h3 className="text-lg font-semibold text-gray-800 mb-5">Session</h3>
