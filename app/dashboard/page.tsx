@@ -95,7 +95,7 @@ export default function DashboardPage() {
           </div>
           <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">Challenge</p>
-            <p className="text-gray-800 break-all">{challenge}</p>
+            <p className="text-gray-800 break-all">{challenge} <span className=" text-[0.8rem] italic text-gray-500"> (Use for Create Credential )</span></p>
           </div>
         </div>
       </div>
