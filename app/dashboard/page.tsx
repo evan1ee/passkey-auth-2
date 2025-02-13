@@ -80,6 +80,8 @@ export default function DashboardPage() {
   return (
     <div className="mx-20 my-10">
       <h2 className="text-xl font-semibold">Session Information</h2>
+      <hr className="my-4" />
+
       <div className="space-y-2">
         <p><strong>User ID:</strong> {userId}</p>
         <p><strong>Email:</strong> {email}</p>
