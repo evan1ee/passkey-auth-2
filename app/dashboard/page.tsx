@@ -9,6 +9,7 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState<string>('');
   const [challenge, setChallenge] = useState<string>('');
   const [email, setEmail] = useState<string>('');
+  const [error, setError] = useState<string>(''); // Error state
 
   // Fetch session info
   useEffect(() => {
@@ -37,8 +38,9 @@ export default function DashboardPage() {
       const credential = await createWebAuthnCredential(challenge, email, email);
       console.log(credential);
       setWebauthnCredential(credential);
+      setError(''); // Clear error if successful
     } catch (error) {
-      console.error('Error creating WebAuthn credential:', error);
+      setError('Error creating WebAuthn credential: ' + error.message); // Set error message
     }
   };
 
@@ -50,13 +52,17 @@ export default function DashboardPage() {
         <p><strong>Email:</strong> {email}</p>
         <p><strong>Challenge:</strong> {challenge}</p>
         {<p><strong>Webauth Available:</strong> {isAvailable ? 'Yes' : 'No'}</p>}
+        
         <button
           onClick={handleCreateCredential}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Create WebAuthn Credential
         </button>
+        
         <p><strong>Webauthn Credential:</strong> {webauthnCredential ? JSON.stringify(webauthnCredential, null, 2) : 'Not created yet'}</p>
+        
+        {error && <p className="text-red-500 mt-2">{error}</p>} {/* Display error message */}
       </div>
     </div>
   );
