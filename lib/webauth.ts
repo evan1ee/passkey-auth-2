@@ -2,7 +2,6 @@
 
 import { supported, create } from "@github/webauthn-json";
 
-
 export const createWebAuthnCredential = async (
   challenge: string,
   username: string,

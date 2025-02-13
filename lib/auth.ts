@@ -1,6 +1,10 @@
 import prisma from "./database";
-import type { VerifiedAuthenticationResponse, VerifiedRegistrationResponse } from "@simplewebauthn/server";
 import { verifyAuthenticationResponse, verifyRegistrationResponse } from "@simplewebauthn/server";
+import type {
+  VerifiedAuthenticationResponse,
+  VerifiedRegistrationResponse,
+} from "@simplewebauthn/server";
+
 import type { PublicKeyCredentialWithAssertionJSON, PublicKeyCredentialWithAttestationJSON } from "@github/webauthn-json";
 import crypto from "crypto";
 import { RegisterUserParams, LoginUserParams, UserCredential, VerificationResult } from "./types";
@@ -32,19 +36,26 @@ export function generateChallenge() {
 }
 
 // Verify Registration Response
-async function verifyRegistration(credential: PublicKeyCredentialWithAttestationJSON, challenge: string): Promise<VerificationResult> {
+export async function verifyRegistration(credential: any, challenge: string) {
+  let verification: VerifiedRegistrationResponse;
   try {
-    return await verifyRegistrationResponse({
+    verification = await verifyRegistrationResponse({
       response: credential,
       expectedChallenge: challenge,
       requireUserVerification: true,
       ...HOST_SETTINGS,
     });
   } catch (error) {
-    console.error("Registration verification failed:", error);
+    console.error(error);
+    throw error;
+  }
+  if (!verification.verified) {
     throw new Error("Registration verification failed");
   }
+  return  verification.registrationInfo;
 }
+
+
 
 // Verify Authentication Response
 async function verifyAuthentication(credential: PublicKeyCredentialWithAssertionJSON, challenge: string, userCredential: UserCredential): Promise<VerificationResult> {

@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { checkWebAuthnAvailability, createWebAuthnCredential } from "@/lib/webauth";
-import ReactJson from "react-json-view";
+import dynamic from 'next/dynamic';
+
+const ReactJson = dynamic(() => import('react-json-view'), {
+  ssr: false, // Disable server-side rendering
+});
+
+
+
 
 export default function DashboardPage() {
   const [isAvailable, setIsAvailable] = useState<boolean>(false);
@@ -11,6 +18,8 @@ export default function DashboardPage() {
   const [challenge, setChallenge] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>(''); // Error state
+  const [credentialId, setCredentialId] = useState<string>('');
+  const [publicKey, setPublicKey] =  useState<any>('');
 
   // Fetch session info
   useEffect(() => {
@@ -45,30 +54,69 @@ export default function DashboardPage() {
     }
   };
 
+
+  const handleVerify = async () => {
+      const Response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({credential: webauthnCredential,  challenge: challenge }),
+      });
+      const result = await Response.json();
+      console.log(result);
+      if (result.success) {
+        setCredentialId(result.data.credentialId);
+        setPublicKey(result.data.publicKey);
+      } else {
+        setError('Error verifying WebAuthn credential: ' + result.error);
+      }
+    }
+
+
+
   return (
-    <div>
+    <div className="mx-20 my-10">
       <h2 className="text-xl font-semibold">Session Information</h2>
       <div className="space-y-2">
         <p><strong>User ID:</strong> {userId}</p>
         <p><strong>Email:</strong> {email}</p>
         <p><strong>Challenge:</strong> {challenge}</p>
         {<p><strong>Webauth Available:</strong> {isAvailable ? 'Yes' : 'No'}</p>}
+        <hr className="my-4" />
         
         <button
           onClick={handleCreateCredential}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
-          Create WebAuthn Credential
+          Create Credential
         </button>
-        
-        {/* Use ReactJson to display the credential */}
+        <hr className="my-4" />
+        <h2 className="text-xl font-semibold">WebAuthn Credential</h2>
         {webauthnCredential ? (
-          <ReactJson src={webauthnCredential}  collapsed={false} />
+          <ReactJson src={webauthnCredential}   
+          collapsed={true} // Ensures it starts collapsed
+          displayDataTypes={false} // Removes data types
+          displayObjectSize={false} //Removes object size 
+          />
         ) : (
           <p>Not created yet</p>
         )}
-        
         {error && <p className="text-red-500 mt-2">{error}</p>} {/* Display error message */}
+
+        <hr className="my-4" />
+
+        <button
+          onClick={handleVerify}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+         Verify Credential
+        </button>
+
+        <hr className="my-4" />
+        <p><strong>Credential ID:</strong> {credentialId}</p>
+        <p><strong>Public Key:</strong> {JSON.stringify(publicKey)}</p>
+        <hr className="my-4" />
       </div>
     </div>
   );

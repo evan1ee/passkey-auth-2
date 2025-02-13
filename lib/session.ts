@@ -9,6 +9,7 @@ export interface SessionData {
   password?: string;
   challenge?: string;
   isLoggedIn: boolean;
+  webauthnCredential?: any;
 }
 
 export const getSession = async () => {
