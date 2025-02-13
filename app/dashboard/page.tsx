@@ -18,8 +18,10 @@ export default function DashboardPage() {
   const [challenge, setChallenge] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>(''); // Error state
-  const [credentialId, setCredentialId] = useState<string>('');
-  const [publicKey, setPublicKey] =  useState<any>(null);
+  // const [credentialId, setCredentialId] = useState<string>('');
+  // const [publicKey, setPublicKey] =  useState<any>(null);
+  const [verificationResponse, setVerificationResponse] = useState<any>(null);
+
 
   // Fetch session info
   useEffect(() => {
@@ -63,12 +65,11 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({credential: webauthnCredential,  challenge: challenge }),
       });
+
       const result = await Response.json();
       console.log(result);
-
       if (result.success) {
-        setCredentialId(result.data.credentialId);
-        setPublicKey(result.data.publicKey);
+        setVerificationResponse(result.data);
       } else {
         setError('Error verifying WebAuthn credential: ' + result.error);
       }
@@ -115,8 +116,9 @@ export default function DashboardPage() {
         </button>
 
         <hr className="my-4" />
-        <p><strong>Credential ID:</strong> {credentialId}</p>
-        <p><strong>Public Key:</strong> {JSON.stringify(publicKey)}</p>
+        <p><strong>Verification Response:</strong>   
+        <code>{JSON.stringify(verificationResponse, null, 2)}</code>
+        </p>
         <hr className="my-4" />
       </div>
     </div>

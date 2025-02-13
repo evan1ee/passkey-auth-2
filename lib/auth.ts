@@ -6,8 +6,8 @@ import type {
 import crypto from "crypto";
 
 const HOST_SETTINGS = {
-  expectedOrigin: process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000",
-  expectedRPID: process.env.NEXT_PUBLIC_SITE_ID  ?? "localhost",
+  expectedOrigin: process.env.NEXT_PUBLIC_URL || "http://localhost:3000",
+  expectedRPID: process.env.NEXT_PUBLIC_SITE_ID  || "localhost",
 };
 
 // Helper to clean strings (Base64url encoding)
