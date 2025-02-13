@@ -70,85 +70,94 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
-  <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Dashboard</h2>
+      <h2 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6">Dashboard</h2>
 
-    <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100">
-    <h3 className="text-lg font-semibold text-gray-800">Session Information</h3>
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">User ID</p>
-            <p className="text-gray-800 truncate">{userId}</p>
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">Email</p>
-            <p className="text-gray-800 truncate">{email}</p>
-          </div>
-        </div>
-  
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500 rounded-xl">Webauth Available</p>
-            <p className={isAvailable ? 'text-green-600' : 'text-red-600'}>
-              {isAvailable ? 'Available' : 'Unavailable'}
-            </p>
-          </div>
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">Challenge</p>
-            <p className="text-gray-800 break-all">{challenge} <span className=" text-[0.8rem] italic text-gray-500"> (Use for Create Credential )</span></p>
-          </div>
-        </div>
-      </div>
-  
-      <div className="my-8 border-t border-gray-200"></div>
-  
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <button
-          onClick={handleCreateCredential}
-          className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-        >
-          <span className="block text-sm font-semibold">1. Create Credential</span>
-        </button>
-        
-        <button
-          onClick={handleVerifyCredential}
-          className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-        >
-          <span className="block text-sm font-semibold">2. Verify Credential</span>
-        </button>
-      </div>
-  
-      <div className="my-8 border-t border-gray-200"></div>
-  
-      <div className="space-y-6">
+      <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-800 mb-5">Session</h3>
+
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">1. Credential</h3>
-          <div className="bg-gray-50 rounded-xl p-4">
-            {webauthnCredential ? (
-              <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm">
-            {JSON.stringify(webauthnCredential, null, 2)}
-          </pre>
-            ) : (
-              <p className="text-gray-500 text-sm">No credentials created yet</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <p className="text-sm font-medium text-gray-500">User ID</p>
+              <p className="text-gray-800 truncate">{userId}</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <p className="text-sm font-medium text-gray-500">Email</p>
+              <p className="text-gray-800 truncate">{email}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <p className="text-sm font-medium text-gray-500 rounded-xl">Webauth Available</p>
+              <p className={isAvailable ? 'text-green-600' : 'text-red-600'}>
+                {isAvailable ? 'Available' : 'Unavailable'}
+              </p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <p className="text-sm font-medium text-gray-500">Challenge</p>
+              <p className="text-gray-800 break-all">{challenge} <span className=" text-[0.8rem] italic text-gray-500"> (Use for Create Credential )</span></p>
+            </div>
           </div>
         </div>
-  
-        {error && (
-          <div className="bg-red-50 p-4 rounded-xl flex items-center">
-            
-            <span className="text-red-700 text-sm">{error}</span>
+
+        <div className="my-8 border-t border-gray-200"></div>
+
+        <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <button
+            onClick={handleCreateCredential}
+            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+          >
+            <span className="block text-sm font-semibold">1. Create Credential</span>
+          </button>
+
+          <button
+            onClick={handleVerifyCredential}
+            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+          >
+            <span className="block text-sm font-semibold">2. Verify Credential</span>
+          </button>
+        </div>
+
+        <div className="my-8 border-t border-gray-200"></div>
+
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">1. Credential</h3>
+            <div className="bg-gray-50 rounded-xl p-4">
+              {webauthnCredential ? (
+                <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm">
+                  {JSON.stringify(webauthnCredential, null, 2)}
+                </pre>
+              ) : (
+                <p className="text-gray-500 text-sm">No credentials created yet</p>
+              )}
+            </div>
           </div>
-        )}
-  
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-800">2. Verification Response</h3>
-          <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm max-h-96">
-            {JSON.stringify(verificationResponse, null, 2)}
-          </pre>
+
+          {error && (
+            <div className="bg-red-50 p-4 rounded-xl flex items-center">
+
+              <span className="text-red-700 text-sm">{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-800">2. Verification Response</h3>
+            <div className="bg-gray-50 rounded-xl p-4">
+
+              {webauthnCredential ? (
+                <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm max-h-96">
+                  {JSON.stringify(verificationResponse, null, 2)}
+                </pre>
+              ) : (
+                <p className="text-gray-500 text-sm">No verification response yet</p>
+              )}
+            </div>
+
+          </div>
         </div>
       </div>
     </div>
-  </div>
   );
 }
