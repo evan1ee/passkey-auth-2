@@ -52,7 +52,7 @@ export default function DashboardPage() {
         {<p><strong>Webauth Available:</strong> {isAvailable ? 'Yes' : 'No'}</p>}
         <button
           onClick={handleCreateCredential}
-          className="px-6 py-3 bg-blue-500 text-white"
+          className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Create WebAuthn Credential
         </button>
