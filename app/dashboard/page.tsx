@@ -40,7 +40,7 @@ export default function DashboardPage() {
       setWebauthnCredential(credential);
       setError(''); // Clear error if successful
     } catch (error) {
-      setError('Error creating WebAuthn credential: ' + error.message); // Set error message
+      setError('Error creating WebAuthn credential: ' +(error as Error).message); // Set error message
     }
   };
 
