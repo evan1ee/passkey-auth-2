@@ -118,7 +118,12 @@ export default function DashboardPage() {
 
         <hr className="my-4" />
         <p><strong>Verification Response:</strong>
-          <code>{JSON.stringify(verificationResponse, null, 2)}</code>
+
+
+          {verificationResponse ? (<code>
+            {JSON.stringify(verificationResponse, null, 2)}
+          </code>) : (<p>No response yet</p>)}
+
         </p>
         <hr className="my-4" />
       </div>
