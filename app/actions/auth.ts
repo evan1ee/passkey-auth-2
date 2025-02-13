@@ -46,12 +46,7 @@ export async function register(prevState: LoginState, formData: FormData) {
     const password = formData.get("password") as string;
 
     const session = await getSession();
-
-    // Check if the user is already logged in
-    if (session.isLoggedIn) {
-        // Redirect to dashboard if already logged in
-        return redirect("/dashboard");
-    }
+    session.destroy();
 
     // Assuming user is successfully registered:
     if (email && password) {
@@ -60,7 +55,6 @@ export async function register(prevState: LoginState, formData: FormData) {
         session.email = email; // Store email in session
         session.challenge = generateChallenge(); // Generate a challenge
         session.password = password;
-        session.isLoggedIn = true;
         await session.save();
         
         return redirect("/login");
