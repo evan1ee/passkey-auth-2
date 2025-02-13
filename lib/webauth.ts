@@ -1,6 +1,7 @@
+"use client";
+
 import { supported, create } from "@github/webauthn-json";
-import { v4 as uuidv4 } from 'uuid';
-const randomUUID = uuidv4();
+
 
 export const createWebAuthnCredential = async (
   challenge: string,
@@ -15,11 +16,11 @@ export const createWebAuthnCredential = async (
         id: "localhost",
       },
       user: {
-        id: randomUUID,
+        id: window.crypto.randomUUID(),
         name: email,
         displayName: username,
       },
-      pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+      pubKeyCredParams: [{ alg: -7, type: "public-key" }, { alg: -257, type: "public-key" }],
       timeout: 60000,
       attestation: "direct",
       authenticatorSelection: {
