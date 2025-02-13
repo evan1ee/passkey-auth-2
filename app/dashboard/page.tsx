@@ -104,7 +104,7 @@ export default function DashboardPage() {
         </button>
 
         <hr className="my-4" />
-        <p > <strong>WebAuthn Credential:</strong></p>
+        <p > <strong>Credential:</strong></p>
         {webauthnCredential ? (
           <ReactJson src={webauthnCredential}
             collapsed={true} // Ensures it starts collapsed
