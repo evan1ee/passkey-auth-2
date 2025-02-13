@@ -11,8 +11,8 @@ export const createWebAuthnCredential = async (
     publicKey: {
       challenge: challenge,
       rp: {
-        name: "next-webauthn",
-        id: "localhost",
+        name: "Passkey-authn",
+        id: process.env.NEXT_PUBLIC_SITE_ID || "localhost", // Use env variable for production
       },
       user: {
         id: window.crypto.randomUUID(),
