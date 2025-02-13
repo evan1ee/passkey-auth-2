@@ -2,13 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { checkWebAuthnAvailability, createWebAuthnCredential } from "@/lib/webauth";
-import dynamic from 'next/dynamic';
-
-const ReactJson = dynamic(() => import('react-json-view'), {
-  ssr: false, // Disable server-side rendering
-});
-
-
 
 
 export default function DashboardPage() {
@@ -76,52 +69,86 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="mx-20 my-10">
-      <h2 className="text-xl font-semibold">Session Information</h2>
-      <hr className="my-4" />
-
-      <div className="space-y-2">
-        <p><strong>User ID:</strong> {userId}</p>
-        <p><strong>Email:</strong> {email}</p>
-        {<p><strong>Webauth Available:</strong> {isAvailable ? 'Yes' : 'No'}</p>}
-        <p><strong>Challenge:</strong> {challenge}</p>
-        <hr className="my-4" />
-
+    <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
+    <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100">
+    <h3 className="text-lg font-semibold text-gray-800">Session Information</h3>
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-500">User ID</p>
+            <p className="text-gray-800 truncate">{userId}</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-500">Email</p>
+            <p className="text-gray-800 truncate">{email}</p>
+          </div>
+        </div>
+  
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-500">Webauth Available</p>
+            <p className={isAvailable ? 'text-green-600' : 'text-red-600'}>
+              {isAvailable ? 'Available' : 'Unavailable'}
+            </p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-500">Challenge</p>
+            <p className="text-gray-800 break-all">{challenge}</p>
+          </div>
+        </div>
+      </div>
+  
+      <div className="my-8 border-t border-gray-200"></div>
+  
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
         <button
           onClick={handleCreateCredential}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
         >
-          1. Create Credential
+          <span className="block text-sm font-semibold">1. Create Credential</span>
         </button>
-
+        
         <button
           onClick={handleVerifyCredential}
-          className="mx-5 bg-blue-500 text-white px-4 py-2 rounded"
+          className="flex-1 py-3 px-6 bg-blue-500 border border-blue-500 rounded-xl text-white hover:bg-blue-600 transition-colors duration-200"
         >
-          2. Verify Credential
+          <span className="block text-sm font-semibold">2. Verify Credential</span>
         </button>
-
-        <hr className="my-4" />
-        <p > <strong>Credential:</strong></p>
-        {webauthnCredential ? (
-          <ReactJson src={webauthnCredential}
-            collapsed={true} // Ensures it starts collapsed
-            displayDataTypes={false} // Removes data types
-            displayObjectSize={false} //Removes object size 
-          />
-        ) : (
-          <p>Not created yet</p>
+      </div>
+  
+      <div className="my-8 border-t border-gray-200"></div>
+  
+      <div className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">Credential</h3>
+          <div className="bg-gray-50 rounded-xl p-4">
+            {webauthnCredential ? (
+              <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm">
+            {JSON.stringify(webauthnCredential, null, 2)}
+          </pre>
+            ) : (
+              <p className="text-gray-500 text-sm">No credentials created yet</p>
+            )}
+          </div>
+        </div>
+  
+        {error && (
+          <div className="bg-red-50 p-4 rounded-lg flex items-center">
+            <svg className="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+            </svg>
+            <span className="text-red-700 text-sm">{error}</span>
+          </div>
         )}
-        {error && <p className="text-red-500 mt-2">{error}</p>} {/* Display error message */}
-
-        <hr className="my-4" />
-        <p><strong>Verification Response:</strong>
-          <code>
+  
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">Verification Response</h3>
+          <pre className="bg-gray-50 rounded-xl p-4 overflow-x-auto text-sm">
             {JSON.stringify(verificationResponse, null, 2)}
-          </code>
-        </p>
-        <hr className="my-4" />
+          </pre>
+        </div>
       </div>
     </div>
+  </div>
   );
 }
