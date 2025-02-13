@@ -1,17 +1,28 @@
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
-
-
-
+export default function Navigation() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-       <a href="/dashboard">Dashboard</a>
-       <a href="/profile">Profile</a>
-       <a href="/register">Register</a>
-       <a href="/login">Login</a>
-       <a href="/logout">Logout</a>
-      </main>
+    <div className="flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 gap-6 font-[family-name:var(--font-geist-sans)]">
+      <nav className="flex flex-col gap-4">
+        <NavLink href="/dashboard">Dashboard</NavLink>
+        <NavLink href="/profile">Profile</NavLink>
+        <NavLink href="/register">Register</NavLink>
+        <NavLink href="/login">Login</NavLink>
+        <NavLink href="/logout">Logout</NavLink>
+      </nav>
     </div>
+  );
+}
+
+type NavLinkProps = {
+  href: string;
+  children: React.ReactNode;
+};
+
+function NavLink({ href, children }: NavLinkProps) {
+  return (
+    <Button asChild variant="outline" className="w-48 text-lg rounded-full">
+      <a href={href}>{children}</a>
+    </Button>
   );
 }
