@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
-      
+
       <div className="flex justify-between items-center  mb-6">
       <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">Dashboard</h2>
         <LogoutButton  />
@@ -101,7 +101,7 @@ export default function DashboardPage() {
             </div>
             <div className="p-3 bg-gray-50 rounded-xl">
               <p className="text-sm font-medium text-gray-500">Challenge</p>
-              <p className="text-gray-800 break-all">{challenge} <span className=" text-[0.8rem] italic text-gray-500"> (Use for Create Credential )</span></p>
+              <p className="text-gray-800 break-all">{challenge} <span className=" text-[0.8rem] italic text-gray-500"> ( Use for Create Credential )</span></p>
             </div>
           </div>
         </div>
