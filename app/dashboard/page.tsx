@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { checkWebAuthnAvailability, createWebAuthnCredential } from "@/lib/webauth";
+import ReactJson from "react-json-view";
 
 export default function DashboardPage() {
   const [isAvailable, setIsAvailable] = useState<boolean>(false);
@@ -60,7 +61,12 @@ export default function DashboardPage() {
           Create WebAuthn Credential
         </button>
         
-        <p><strong>Webauthn Credential:</strong> {webauthnCredential ? JSON.stringify(webauthnCredential, null, 2) : 'Not created yet'}</p>
+        {/* Use ReactJson to display the credential */}
+        {webauthnCredential ? (
+          <ReactJson src={webauthnCredential}  collapsed={false} />
+        ) : (
+          <p>Not created yet</p>
+        )}
         
         {error && <p className="text-red-500 mt-2">{error}</p>} {/* Display error message */}
       </div>
