@@ -122,7 +122,9 @@ export default function DashboardPage() {
 
           {verificationResponse ? (<code>
             {JSON.stringify(verificationResponse, null, 2)}
-          </code>) : (<p>No response yet</p>)}
+          </code>) : (
+            <p>Not verified yet</p>
+          )}
 
         </p>
         <hr className="my-4" />
