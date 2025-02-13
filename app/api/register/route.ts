@@ -40,27 +40,16 @@ export async function POST(request: Request) {
       challenge
     );
 
-    console.log("Registration verification response:", verificationResponse);
+    // console.log("Registration verification response:", verificationResponse);
 
     // Return success response
     return NextResponse.json(
       {
         success: true,
         data: {
-          // userVerified: verificationResponse?.userVerified,
-          // attestationObject: verificationResponse?.attestationObject,
-          // fmt: verificationResponse?.fmt,
-          // aaguid: verificationResponse?.aaguid,
-          // credentialType: verificationResponse?.credentialType,
-          // credentialDeviceType: verificationResponse?.credentialDeviceType,
-          // credentialBackedUp: verificationResponse?.credentialBackedUp,
-          // origin: verificationResponse?.origin,
-          // rpID: verificationResponse?.rpID,
-          // authenticatorExtensionResults: verificationResponse?.authenticatorExtensionResults,
           // credentialId: verificationResponse?.credential.id,
           // publicKey: verificationResponse?.credential.publicKey,
           // counter: verificationResponse?.credential.counter,
-          // transports: verificationResponse?.credential.transports, 
           verificationResponse
         }
       },

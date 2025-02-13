@@ -52,28 +52,28 @@ export default function DashboardPage() {
       setWebauthnCredential(credential);
       setError(''); // Clear error if successful
     } catch (error) {
-      setError('Error creating WebAuthn credential: ' +(error as Error).message); // Set error message
+      setError('Error creating WebAuthn credential: ' + (error as Error).message); // Set error message
     }
   };
 
 
   const handleVerify = async () => {
-      const Response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({credential: webauthnCredential,  challenge: challenge }),
-      });
+    const Response = await fetch('/api/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ credential: webauthnCredential, challenge: challenge }),
+    });
 
-      const result = await Response.json();
-      console.log(result);
-      if (result.success) {
-        setVerificationResponse(result.data);
-      } else {
-        setError('Error verifying WebAuthn credential: ' + result.error);
-      }
+    const result = await Response.json();
+    console.log(result);
+    if (result.success) {
+      setVerificationResponse(result.data);
+    } else {
+      setError('Error verifying WebAuthn credential: ' + result.error);
     }
+  }
 
 
 
@@ -86,20 +86,28 @@ export default function DashboardPage() {
         <p><strong>Challenge:</strong> {challenge}</p>
         {<p><strong>Webauth Available:</strong> {isAvailable ? 'Yes' : 'No'}</p>}
         <hr className="my-4" />
-        
+
         <button
           onClick={handleCreateCredential}
           className="bg-blue-500 text-white px-4 py-2 rounded"
         >
-          Create Credential
+          1. Create Credential
         </button>
+
+        <button
+          onClick={handleVerify}
+          className="mx-5 bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          2. Verify Credential
+        </button>
+
         <hr className="my-4" />
-        <h2 className="text-xl font-semibold">WebAuthn Credential</h2>
+        <p > <strong>WebAuthn Credential:</strong></p>
         {webauthnCredential ? (
-          <ReactJson src={webauthnCredential}   
-          collapsed={true} // Ensures it starts collapsed
-          displayDataTypes={false} // Removes data types
-          displayObjectSize={false} //Removes object size 
+          <ReactJson src={webauthnCredential}
+            collapsed={true} // Ensures it starts collapsed
+            displayDataTypes={false} // Removes data types
+            displayObjectSize={false} //Removes object size 
           />
         ) : (
           <p>Not created yet</p>
@@ -107,17 +115,8 @@ export default function DashboardPage() {
         {error && <p className="text-red-500 mt-2">{error}</p>} {/* Display error message */}
 
         <hr className="my-4" />
-
-        <button
-          onClick={handleVerify}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-         Verify Credential
-        </button>
-
-        <hr className="my-4" />
-        <p><strong>Verification Response:</strong>   
-        <code>{JSON.stringify(verificationResponse, null, 2)}</code>
+        <p><strong>Verification Response:</strong>
+          <code>{JSON.stringify(verificationResponse, null, 2)}</code>
         </p>
         <hr className="my-4" />
       </div>
