@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { verifyRegistration } from "@/lib/auth";
+import { verifyAuthentication } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 
 import type { 
-  PublicKeyCredentialWithAttestationJSON,
+  PublicKeyCredentialWithAssertionJSON,
 } from "@github/webauthn-json";
 
 // POST /api/register
@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     
     // Validate required fields
-    if (!body?.credential || !body?.challenge) {
+    if (!body?.assertionCredential || !body?.challenge) {
       return NextResponse.json(
         {
           success: false,
@@ -23,29 +23,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const { credential, challenge } = body;
+    const { assertionCredential, challenge,credential } = body;
 
     // Type check for credential
-    if (typeof credential !== 'object') {
+    if (typeof assertionCredential !== 'object') {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid credential format",
+          error: "Invalid assertionCredential format",
         },
         { status: 400 }
       );
     }
 
     // Verify the registration
-    const verificationResponse = await verifyRegistration(
-      credential as PublicKeyCredentialWithAttestationJSON,
-      challenge
+    const verificationResponse = await verifyAuthentication(
+      assertionCredential as PublicKeyCredentialWithAssertionJSON,
+      challenge,
+      credential,
     );
     if (verificationResponse.verified){
-
       const session = await getSession()
-      session.credentialId=verificationResponse.registrationInfo?.credential.id
-      session.publicKey=verificationResponse.registrationInfo?.credential.id
       await session.save();
       
     }
@@ -57,9 +55,6 @@ export async function POST(request: Request) {
       {
         success: true,
         data: {
-          // credentialId: verificationResponse?.credential.id,
-          // publicKey: verificationResponse?.credential.publicKey,
-          // counter: verificationResponse?.credential.counter,
           verificationResponse
         }
       },

@@ -3,9 +3,7 @@
 
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
-
 import { generateChallenge } from "@/lib/auth";
-import { createWebAuthnCredential } from "@/lib/webauth";
 // Generate random UUID
 import { v4 as uuidv4 } from 'uuid';
 const randomUUID = uuidv4();

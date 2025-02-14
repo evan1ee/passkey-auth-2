@@ -1,7 +1,12 @@
-import {verifyRegistrationResponse } from "@simplewebauthn/server";
+import {verifyAuthenticationResponse, verifyRegistrationResponse } from "@simplewebauthn/server";
 import type {
+  AuthenticationResponseJSON,
+  VerifiedAuthenticationResponse,
   VerifiedRegistrationResponse,
 } from "@simplewebauthn/server";
+
+import type {WebAuthnCredential } from "@simplewebauthn/server"
+
 
 import crypto from "crypto";
 
@@ -31,7 +36,7 @@ export function generateChallenge() {
   return clean(crypto.randomBytes(32).toString("base64"));
 }
 
-// Verify Registration Response
+// Verify Registration 
 export async function verifyRegistration(credential: any, challenge: string) {
   let verification: VerifiedRegistrationResponse;
   try {
@@ -48,6 +53,19 @@ export async function verifyRegistration(credential: any, challenge: string) {
   if (!verification.verified) {
     throw new Error("Registration verification failed");
   }
+  return  verification;
+}
+
+
+// Verify Registration 
+export async function verifyAuthentication(assertionCredential: any, challenge: string, credential: WebAuthnCredential ) {
+  let verification: VerifiedAuthenticationResponse;
+    verification = await verifyAuthenticationResponse({
+      response: assertionCredential,
+      expectedChallenge: challenge,
+      credential:credential,
+      ...HOST_SETTINGS,
+    });
   return  verification;
 }
 

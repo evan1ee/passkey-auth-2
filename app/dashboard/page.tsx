@@ -12,8 +12,8 @@ export default function DashboardPage() {
   const [challenge, setChallenge] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [error, setError] = useState<string>(''); // Error state
-  // const [credentialId, setCredentialId] = useState<string>('');
-  // const [publicKey, setPublicKey] =  useState<any>(null);
+  const [credentialId, setCredentialId] = useState<string>('');
+  const [publicKey, setPublicKey] =  useState<any>(null);
   const [verificationResponse, setVerificationResponse] = useState<any>(null);
 
 
@@ -64,10 +64,43 @@ export default function DashboardPage() {
     console.log(result);
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
+      const response = await fetch("/api/session");
+      const data = await response.json();
+      setCredentialId(data.session.credentialId);
+      setPublicKey(data.session.publicKey);
+
+
+
     } else {
       setError('Error verifying WebAuthn credential: ' + result.error);
     }
   }
+
+
+  const handleVerifyAuthentication = async () => {
+    const Response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ credential: webauthnCredential, challenge: challenge }),
+    });
+
+    const result = await Response.json();
+    console.log(result);
+    if (result.success) {
+      setVerificationResponse(result.data.verificationResponse);
+      const response = await fetch("/api/session");
+      const data = await response.json();
+      setCredentialId(data.session.credentialId);
+      setPublicKey(data.session.publicKey);
+
+    } else {
+      setError('Error verifying WebAuthn credential: ' + result.error);
+    }
+  }
+
+
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
@@ -104,6 +137,20 @@ export default function DashboardPage() {
               <p className="text-gray-800 break-all">{challenge} <span className=" text-[0.8rem] italic text-gray-500"> ( Use for Create Credential )</span></p>
             </div>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <p className="text-sm font-medium text-gray-500 rounded-xl">CredentialId</p>
+              <p className="text-gray-800 break-all">{credentialId} <span className=" text-[0.8rem] italic text-gray-500"> (store in DB)</span></p>
+            </div>
+
+            <div className="p-3 bg-gray-50 rounded-xl">
+              <p className="text-sm font-medium text-gray-500">PublicKey</p>
+              <p className="text-gray-800 break-all">{publicKey} <span className=" text-[0.8rem] italic text-gray-500"> (store in DB)</span></p>
+            </div>
+          </div>
+
+
         </div>
 
         <div className="my-8 border-t border-gray-200"></div>
@@ -120,8 +167,16 @@ export default function DashboardPage() {
             onClick={handleVerifyCredential}
             className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
-            <span className="block text-sm font-semibold">2. Verify Credential</span>
+            <span className="block text-sm font-semibold">2. Verify Registration (register)</span>
           </button>
+
+          <button
+            onClick={handleVerifyAuthentication}
+            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+          >
+            <span className="block text-sm font-semibold">3. Verify Authentication (Login)</span>
+          </button>
+
         </div>
 
         <div className="my-8 border-t border-gray-200"></div>
