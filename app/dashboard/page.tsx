@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { checkWebAuthnAvailability, createWebAuthnCredential } from "@/lib/webauth";
+import { checkWebAuthnAvailability, registerWebAuthnCredential,authenticateWithWebAuthn } from "@/lib/webauth";
 import LogoutButton from "@/components/LogoutButton";
 
 
@@ -41,7 +41,7 @@ export default function DashboardPage() {
 
   const handleCreateCredential = async () => {
     try {
-      const credential = await createWebAuthnCredential(challenge, email, email);
+      const credential = await registerWebAuthnCredential(challenge, email, email);
       console.log(credential);
       setWebauthnCredential(credential);
       setError(''); // Clear error if successful
@@ -69,13 +69,21 @@ export default function DashboardPage() {
       setCredentialId(data.session.credentialId);
       setPublicKey(data.session.publicKey);
 
-
-
     } else {
       setError('Error verifying WebAuthn credential: ' + result.error);
     }
   }
 
+  const handleGetCredential = async () => {
+    try {
+      const credential = await registerWebAuthnCredential(challenge, email, email);
+      console.log(credential);
+      setWebauthnCredential(credential);
+      setError(''); // Clear error if successful
+    } catch (error) {
+      setError('Error creating WebAuthn credential: ' + (error as Error).message); // Set error message
+    }
+  };
 
   const handleVerifyAuthentication = async () => {
     const Response = await fetch('/api/login', {
@@ -100,8 +108,6 @@ export default function DashboardPage() {
     }
   }
 
-
-
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
 
@@ -124,7 +130,6 @@ export default function DashboardPage() {
               <p className="text-gray-800 truncate">{email}</p>
             </div>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-3 bg-gray-50 rounded-xl">
               <p className="text-sm font-medium text-gray-500 rounded-xl">Webauth Available</p>
@@ -149,8 +154,6 @@ export default function DashboardPage() {
               <p className="text-gray-800 break-all">{publicKey} <span className=" text-[0.8rem] italic text-gray-500"> (store in DB)</span></p>
             </div>
           </div>
-
-
         </div>
 
         <div className="my-8 border-t border-gray-200"></div>
@@ -171,10 +174,17 @@ export default function DashboardPage() {
           </button>
 
           <button
+            onClick={handleGetCredential}
+            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+          >
+            <span className="block text-sm font-semibold">3. Create Credential (Login)</span>
+          </button>
+
+          <button
             onClick={handleVerifyAuthentication}
             className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
-            <span className="block text-sm font-semibold">3. Verify Authentication (Login)</span>
+            <span className="block text-sm font-semibold">4. Verify Authentication (Login)</span>
           </button>
 
         </div>

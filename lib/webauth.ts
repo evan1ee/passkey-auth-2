@@ -1,8 +1,8 @@
 "use client";
 
-import { supported, create } from "@github/webauthn-json";
+import { supported, create, get  } from "@github/webauthn-json";
 
-export const createWebAuthnCredential = async (
+export const registerWebAuthnCredential  = async (
   challenge: string,
   username: string,
   email: string
@@ -33,5 +33,19 @@ export const createWebAuthnCredential = async (
 export const checkWebAuthnAvailability = async () => {
     const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
     return available && supported();
+  };
+
+
+  export const authenticateWithWebAuthn  = async (
+    challenge: string,
+  )=>{
+    return await get({
+      publicKey: {
+        challenge,
+        timeout: 60000,
+        userVerification: "required",
+        rpId: process.env.NEXT_PUBLIC_SITE_ID || "localhost", // Use env variable for production,
+      },
+    });
   };
   
