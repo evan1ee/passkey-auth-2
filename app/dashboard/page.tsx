@@ -17,12 +17,13 @@ export default function DashboardPage() {
   const [email, setEmail] = useState<string>("");
   const [userId, setUserId] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isPasskeyLoggedIn, setIsPasskeyLoggedIn] = useState<boolean>(false);
 
   const [session, setSession] = useState<any>(null);
 
   const [credentialId, setCredentialId] = useState<string>("");
   const [publicKey, setPublicKey] = useState<any>(null);
-  const [count, setCount] = useState<number>(0);
+  const [counter, setCounter] = useState<number>(0);
 
   const [verificationResponse, setVerificationResponse] = useState<any>(null);
 
@@ -35,6 +36,8 @@ export default function DashboardPage() {
       const data = await response.json();
       setUserId(data.session.userId);
       setEmail(data.session.email);
+      setIsLoggedIn(data.session.isLoggedIn);
+      setIsPasskeyLoggedIn(data.session.isPasskeyLoggedIn);
     };
     fetchSession();
   }, []); // Only runs on mount
@@ -86,14 +89,20 @@ export default function DashboardPage() {
 
     const result = await Response.json();
 
-    console.log(result);
+    console.log(result.data.verificationResponse);
+
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
+
       setCredentialId(
-        result.data.verificationResponse.registrationInfo.credentialId
+        result.data.verificationResponse.registrationInfo.credential.id
       );
-      setPublicKey(result.data.verificationResponse.registrationInfo.publicKey);
-      setPublicKey(result.data.verificationResponse.registrationInfo.publicKey);
+      setPublicKey(
+        result.data.verificationResponse.registrationInfo.credential.publicKey
+      );
+      setCounter(
+        result.data.verificationResponse.registrationInfo.credential.counter
+      );
     } else {
       setError("Error verifying WebAuthn credential: " + result.error);
     }
@@ -132,10 +141,6 @@ export default function DashboardPage() {
     console.log(result);
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
-      const response = await fetch("/api/session");
-      const data = await response.json();
-      setCredentialId(data.session.credentialId);
-      setPublicKey(data.session.publicKey);
     } else {
       setError("Error verifying WebAuthn credential: " + result.error);
     }
@@ -157,43 +162,22 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">User ID</p>
-            <p className="text-gray-800 truncate">{userId}</p>
+            <p className="text-gray-800 truncate overflow-y-auto">{userId}</p>
           </div>
 
           <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">Email</p>
             <p className="text-gray-800 truncate">{email}</p>
           </div>
-        </div>
 
-        <div className="my-8 border-t border-gray-200"></div>
-
-        <h3 className="text-xl font-semibold text-gray-800 mb-5">
-          User Credential
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500 rounded-xl">
-              CredentialId
-            </p>
-            <p className="text-gray-800 break-all">
-              {credentialId}{" "}
-              <span className=" text-[0.8rem] italic text-gray-500">
-                {" "}
-                (store in DB)
-              </span>
-            </p>
+            <p className="text-sm font-medium text-gray-500">isLoggedIn</p>
+            <p className="text-gray-800 truncate">{isLoggedIn? "ture": "false"}</p>
           </div>
 
           <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">PublicKey</p>
-            <p className="text-gray-800 break-all">
-              {publicKey}{" "}
-              <span className=" text-[0.8rem] italic text-gray-500">
-                {" "}
-                (store in DB)
-              </span>
-            </p>
+            <p className="text-sm font-medium text-gray-500">isPasskeyLoggedIn</p>
+            <p className="text-gray-800 truncate">{isPasskeyLoggedIn? "ture": "false"}</p>
           </div>
         </div>
 
@@ -218,7 +202,7 @@ export default function DashboardPage() {
             className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
             <span className="block text-sm font-semibold">
-              1. Create Credential
+              2. Create Credential
             </span>
           </button>
 
@@ -227,7 +211,16 @@ export default function DashboardPage() {
             className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
             <span className="block text-sm font-semibold">
-              2. Verify Registration (register)
+              3. Verify Registration (register)
+            </span>
+          </button>
+
+          <button
+            onClick={handleGenerateChallenge}
+            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
+          >
+            <span className="block text-sm font-semibold">
+              4. Generate Challenge (Login)
             </span>
           </button>
 
@@ -236,7 +229,7 @@ export default function DashboardPage() {
             className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
             <span className="block text-sm font-semibold">
-              3. Create Credential (Login)
+              5. Create Credential (Login)
             </span>
           </button>
 
@@ -245,7 +238,7 @@ export default function DashboardPage() {
             className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
           >
             <span className="block text-sm font-semibold">
-              4. Verify Authentication (Login)
+              6. Verify Authentication (Login)
             </span>
           </button>
         </div>
@@ -255,6 +248,41 @@ export default function DashboardPage() {
             <span className="text-red-700 text-sm">{error}</span>
           </div>
         )}
+
+        <div className="my-8 border-t border-gray-200"></div>
+
+        <h3 className="text-xl font-semibold text-gray-800 mb-5">
+          User Credential
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* PublicKey Section */}
+          <div className="md:row-span-2 flex flex-col">
+            <div className="p-3 bg-gray-50 rounded-xl flex-1">
+              <p className="text-sm font-medium text-gray-500">PublicKey</p>
+              <p className="bg-gray-50 rounded-xl overflow-y-auto text-sm ">
+                {JSON.stringify(publicKey, null, 2)}
+              </p>
+            </div>
+          </div>
+
+          {/* CredentialId Section */}
+          <div className="p-3 bg-gray-50 rounded-xl flex-1">
+            <p className="text-sm font-medium text-gray-500">CredentialId</p>
+            <p className="text-gray-800 break-all">{credentialId}</p>
+          </div>
+
+          {/* Counter Section */}
+          <div className="p-3 bg-gray-50 rounded-xl flex-1">
+            <p className="text-sm font-medium text-gray-500">Counter</p>
+            <p className="text-gray-800 break-all">
+              {counter}
+              <span className="text-[0.8rem] italic text-gray-500">
+                {" "}
+                (store in DB)
+              </span>
+            </p>
+          </div>
+        </div>
 
         {/* line */}
 
@@ -294,39 +322,37 @@ export default function DashboardPage() {
           </div>
 
           <div className="bg-gray-50 rounded-xl p-2">
-          <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
-
-            <h3 className="text-lg font-semibold text-gray-500 mb-2">
-              Credential:
-            </h3>
-            {webauthnCredential ? (
-              <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
-                {JSON.stringify(webauthnCredential, null, 2)}
-              </pre>
-            ) : (
-              <p className="text-gray-500 text-sm ">
-                No credentials created yet
-              </p>
-            )}
-          </div>
+            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
+              <h3 className="text-lg font-semibold text-gray-500 mb-2">
+                Credential
+              </h3>
+              {webauthnCredential ? (
+                <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
+                  {JSON.stringify(webauthnCredential, null, 2)}
+                </pre>
+              ) : (
+                <p className="text-gray-500 text-sm ">
+                  No credentials created yet
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="bg-gray-50 rounded-xl p-2">
-          <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
-
-            <h3 className="text-lg font-semibold text-gray-500 mb-2">
-              Verification Response
-            </h3>
-            {webauthnCredential ? (
-              <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm max-h-96">
-                {JSON.stringify(verificationResponse, null, 2)}
-              </pre>
-            ) : (
-              <p className="text-gray-500 text-sm">
-                No verification response yet
-              </p>
-            )}
-          </div>
+            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
+              <h3 className="text-lg font-semibold text-gray-500 mb-2">
+                Verification Response
+              </h3>
+              {webauthnCredential ? (
+                <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm max-h-96">
+                  {JSON.stringify(verificationResponse, null, 2)}
+                </pre>
+              ) : (
+                <p className="text-gray-500 text-sm">
+                  No verification response yet
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

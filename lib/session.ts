@@ -3,11 +3,13 @@ import { cookies } from "next/headers";
 import { sessionConfig } from "./config";
 
 export interface SessionData {
-  userId?: string;
+  userId: string;
   username?: string;
-  email?: string
+  email: string
   password?: string;
   isLoggedIn: boolean;
+  isPasskeyLoggedIn?: boolean;
+
 }
 
 export const getSession = async () => {
