@@ -41,14 +41,14 @@ export async function POST(request: Request) {
       credential as PublicKeyCredentialWithAttestationJSON,
       challenge
     );
-    if (verificationResponse.verified){
+    // if (verificationResponse.verified){
 
-      const session = await getSession()
-      session.credentialId=verificationResponse.registrationInfo?.credential.id
-      session.publicKey=verificationResponse.registrationInfo?.credential.id
-      await session.save();
+    //   const session = await getSession()
+    //   session.credentialId=verificationResponse.registrationInfo?.credential.id
+    //   session.publicKey=verificationResponse.registrationInfo?.credential.id
+    //   await session.save();
       
-    }
+    // }
 
     // console.log("Registration verification response:", verificationResponse);
 

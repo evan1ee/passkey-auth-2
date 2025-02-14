@@ -7,19 +7,14 @@ export interface SessionData {
   username?: string;
   email?: string
   password?: string;
-  challenge?: string;
   isLoggedIn: boolean;
-  credentialId?:string;
-  publicKey?:any;
 }
 
 export const getSession = async () => {
   const session = await getIronSession<SessionData>(await cookies(), sessionConfig);
-  
   // Initialize session if needed
   if (!session.isLoggedIn) {
     session.isLoggedIn = false;
   }
-  
   return session;
 };

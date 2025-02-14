@@ -51,7 +51,6 @@ export async function register(prevState: LoginState, formData: FormData) {
         session.userId = randomUUID; // You should retrieve this from your DB
         session.username = email; // Store username in session
         session.email = email; // Store email in session
-        session.challenge = generateChallenge(); // Generate a challenge
         session.password = password;
         await session.save();
         
@@ -66,3 +65,15 @@ export async function logout() {
     session.destroy();
     return redirect("/");
 }
+
+
+export async function getChallenge() {
+    const challenge = generateChallenge();
+    return challenge;
+}
+
+export async function getUserSession() {
+    const session = await getSession();
+    return session;
+}
+
