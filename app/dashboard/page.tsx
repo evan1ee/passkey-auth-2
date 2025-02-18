@@ -14,16 +14,9 @@ export default function DashboardPage() {
   const [webauthnCredential, setWebauthnCredential] = useState<any>(null);
   const [challenge, setChallenge] = useState<string>("");
 
-  const [email, setEmail] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [isPasskeyLoggedIn, setIsPasskeyLoggedIn] = useState<boolean>(false);
-
   const [session, setSession] = useState<any>(null);
 
-  const [credentialId, setCredentialId] = useState<string>("");
-  const [publicKey, setPublicKey] = useState<any>(null);
-  const [counter, setCounter] = useState<number>(0);
+  const [userCredential,setUserCredential]= useState<any>(null);
 
   const [verificationResponse, setVerificationResponse] = useState<any>(null);
 
@@ -34,10 +27,7 @@ export default function DashboardPage() {
     const fetchSession = async () => {
       const response = await fetch("/api/session");
       const data = await response.json();
-      setUserId(data.session.userId);
-      setEmail(data.session.email);
-      setIsLoggedIn(data.session.isLoggedIn);
-      setIsPasskeyLoggedIn(data.session.isPasskeyLoggedIn);
+      setSession(data.session)
     };
     fetchSession();
   }, []); // Only runs on mount
@@ -61,8 +51,8 @@ export default function DashboardPage() {
     try {
       const credential = await registerWebAuthnCredential(
         challenge,
-        email,
-        email
+        session.email,
+        session.email
       );
       console.log(credential);
       setWebauthnCredential(credential);
@@ -89,20 +79,11 @@ export default function DashboardPage() {
 
     const result = await Response.json();
 
-    console.log(result.data.verificationResponse);
+    console.log(result.data.verificationResponse.registrationInfo.credential);
 
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
-
-      setCredentialId(
-        result.data.verificationResponse.registrationInfo.credential.id
-      );
-      setPublicKey(
-        result.data.verificationResponse.registrationInfo.credential.publicKey
-      );
-      setCounter(
-        result.data.verificationResponse.registrationInfo.credential.counter
-      );
+      setUserCredential(result.data.verificationResponse.registrationInfo.credential)
     } else {
       setError("Error verifying WebAuthn credential: " + result.error);
     }
@@ -162,22 +143,22 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">User ID</p>
-            <p className="text-gray-800 truncate overflow-y-auto">{userId}</p>
+            <p className="text-gray-800 truncate overflow-y-auto">{session?.userId}</p>
           </div>
 
           <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">Email</p>
-            <p className="text-gray-800 truncate">{email}</p>
+            <p className="text-gray-800 truncate">{session?.email}</p>
           </div>
 
           <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">isLoggedIn</p>
-            <p className="text-gray-800 truncate">{isLoggedIn? "ture": "false"}</p>
+            <p className="text-gray-800 truncate">{session?.isLoggedIn? "ture": "false"}</p>
           </div>
 
           <div className="p-3 bg-gray-50 rounded-xl">
             <p className="text-sm font-medium text-gray-500">isPasskeyLoggedIn</p>
-            <p className="text-gray-800 truncate">{isPasskeyLoggedIn? "ture": "false"}</p>
+            <p className="text-gray-800 truncate">{session?.isPasskeyLoggedIn? "ture": "false"}</p>
           </div>
         </div>
 
@@ -260,7 +241,7 @@ export default function DashboardPage() {
             <div className="p-3 bg-gray-50 rounded-xl flex-1">
               <p className="text-sm font-medium text-gray-500">PublicKey</p>
               <p className="bg-gray-50 rounded-xl overflow-y-auto text-sm ">
-                {JSON.stringify(publicKey, null, 2)}
+                {JSON.stringify(userCredential?.publicKey, null, 2)}
               </p>
             </div>
           </div>
@@ -268,14 +249,14 @@ export default function DashboardPage() {
           {/* CredentialId Section */}
           <div className="p-3 bg-gray-50 rounded-xl flex-1">
             <p className="text-sm font-medium text-gray-500">CredentialId</p>
-            <p className="text-gray-800 break-all">{credentialId}</p>
+            <p className="text-gray-800 break-all">{userCredential?.id}</p>
           </div>
 
           {/* Counter Section */}
           <div className="p-3 bg-gray-50 rounded-xl flex-1">
             <p className="text-sm font-medium text-gray-500">Counter</p>
             <p className="text-gray-800 break-all">
-              {counter}
+              {userCredential?.counter}
               <span className="text-[0.8rem] italic text-gray-500">
                 {" "}
                 (store in DB)
