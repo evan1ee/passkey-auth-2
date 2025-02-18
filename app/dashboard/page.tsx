@@ -12,6 +12,8 @@ import { getChallenge } from "../actions/auth";
 export default function DashboardPage() {
   const [isAvailable, setIsAvailable] = useState<boolean>(false);
   const [webauthnCredential, setWebauthnCredential] = useState<any>(null);
+  const [credentialWithAssertion, setCredentialWithAssertion] = useState<any>(null);
+
   const [challenge, setChallenge] = useState<string>("");
 
   const [session, setSession] = useState<any>(null);
@@ -41,6 +43,8 @@ export default function DashboardPage() {
     };
     check();
   }, []);
+
+  // register
 
   const handleGenerateChallenge = async () => {
     const data = await getChallenge();
@@ -89,15 +93,15 @@ export default function DashboardPage() {
     }
   };
 
+  // login
+
   const handleGetCredential = async () => {
     try {
-      const credential = await registerWebAuthnCredential(
+      const credential = await authenticateWithWebAuthn(
         challenge,
-        email,
-        email
       );
       console.log(credential);
-      setWebauthnCredential(credential);
+      setCredentialWithAssertion(credential);
       setError(""); // Clear error if successful
     } catch (error) {
       setError(
@@ -335,6 +339,25 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
+
+          <div className="bg-gray-50 rounded-xl p-2">
+            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
+              <h3 className="text-lg font-semibold text-gray-500 mb-2">
+              Credential With Assertion
+              </h3>
+              {credentialWithAssertion ? (
+                <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
+                  {JSON.stringify(credentialWithAssertion, null, 2)}
+                </pre>
+              ) : (
+                <p className="text-gray-500 text-sm ">
+                  No credentials created yet
+                </p>
+              )}
+            </div>
+          </div>
+
+
         </div>
       </div>
     </div>
