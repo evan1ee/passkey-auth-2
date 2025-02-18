@@ -9,6 +9,9 @@ import {
 import LogoutButton from "@/components/LogoutButton";
 import { getChallenge } from "../actions/auth";
 
+
+
+
 export default function DashboardPage() {
   const [isAvailable, setIsAvailable] = useState<boolean>(false);
   const [webauthnCredential, setWebauthnCredential] = useState<any>(null);
@@ -23,6 +26,29 @@ export default function DashboardPage() {
   const [verificationResponse, setVerificationResponse] = useState<any>(null);
 
   const [error, setError] = useState<string>(""); // Error state
+
+
+  function binaryToBase64url(bytes: Uint8Array): string {
+    // Convert Uint8Array to Base64 string
+    const base64String = btoa(String.fromCharCode(...bytes));
+  
+    // Convert Base64 to Base64URL
+    return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); // Remove padding
+  }
+
+  function uint8ArrayToBase64url(bytes: Uint8Array): string {
+    // Convert Uint8Array to binary string safely
+    let binaryString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+  
+    // Encode binary string to Base64
+    const base64String = btoa(binaryString);
+  
+    // Convert Base64 to Base64URL format (removing padding)
+    return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  
+  
+
 
   // Fetch session info
   useEffect(() => {
@@ -87,7 +113,16 @@ export default function DashboardPage() {
 
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
-      setUserCredential(result.data.verificationResponse.registrationInfo.credential)
+      const credential = result.data.verificationResponse.registrationInfo.credential
+
+      setUserCredential({
+        id:binaryToBase64url(credential.id),
+        publicKey:uint8ArrayToBase64url(credential.publicKey),
+        counter: credential.counter
+      })
+
+      
+
     } else {
       setError("Error verifying WebAuthn credential: " + result.error);
     }
@@ -117,13 +152,15 @@ export default function DashboardPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        credential: webauthnCredential,
+        assertionCredential:credentialWithAssertion,
         challenge: challenge,
+        credential: userCredential,
       }),
     });
 
     const result = await Response.json();
     console.log(result);
+
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
     } else {

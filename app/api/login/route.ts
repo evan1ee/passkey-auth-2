@@ -25,30 +25,38 @@ export async function POST(request: Request) {
 
     const { assertionCredential, challenge,credential } = body;
 
-    // Type check for credential
-    if (typeof assertionCredential !== 'object') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid assertionCredential format",
-        },
-        { status: 400 }
-      );
-    }
+    console.log(assertionCredential)
+    console.log(challenge)
+    console.log(credential)
 
-    // Verify the registration
+
+
+    // // Type check for credential
+    // if (typeof assertionCredential !== 'object') {
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       error: "Invalid assertionCredential format",
+    //     },
+    //     { status: 400 }
+    //   );
+    // }
+
+    // Verify the login
     const verificationResponse = await verifyAuthentication(
       assertionCredential as PublicKeyCredentialWithAssertionJSON,
       challenge,
       credential,
     );
+    
     if (verificationResponse.verified){
       const session = await getSession()
+      session.isPasskeyLoggedIn=true
       await session.save();
-      
     }
 
-    // console.log("Registration verification response:", verificationResponse);
+    console.log(verificationResponse)
+
 
     // Return success response
     return NextResponse.json(

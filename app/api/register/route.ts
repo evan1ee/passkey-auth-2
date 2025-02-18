@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { verifyRegistration } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 
+
 import type { 
   PublicKeyCredentialWithAttestationJSON,
 } from "@github/webauthn-json";
+
 
 // POST /api/register
 export async function POST(request: Request) {
@@ -42,24 +44,17 @@ export async function POST(request: Request) {
       challenge
     );
     // if (verificationResponse.verified){
-
-    //   const session = await getSession()
-    //   session.credentialId=verificationResponse.registrationInfo?.credential.id
-    //   session.publicKey=verificationResponse.registrationInfo?.credential.id
-    //   await session.save();
-      
-    // }
+    //   const id = clean(binaryToBase64url(verificationResponse.registrationInfo?.credential.id))
+    //   console.log(id)
+    //   const publicKey = Buffer.from(verificationResponse.registrationInfo?.credential.publicKey)
+    // }console.log(publicKey)
 
     // console.log("Registration verification response:", verificationResponse);
-
     // Return success response
     return NextResponse.json(
       {
         success: true,
         data: {
-          // credentialId: verificationResponse?.credential.id,
-          // publicKey: verificationResponse?.credential.publicKey,
-          // counter: verificationResponse?.credential.counter,
           verificationResponse
         }
       },
