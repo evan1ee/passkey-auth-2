@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { toast } from "react-hot-toast"; // Assuming you use toast for notifications
 import {
   checkWebAuthnAvailability,
   registerWebAuthnCredential,
@@ -8,371 +9,476 @@ import {
 } from "@/lib/webauth";
 import LogoutButton from "@/components/LogoutButton";
 import { getChallenge } from "../actions/auth";
+import { WebAuthnCredential } from "@simplewebauthn/server";
 
-import type {WebAuthnCredential } from "@simplewebauthn/server"
+// Type definitions
+type SessionData = {
+  userId: string;
+  email: string;
+  isLoggedIn: boolean;
+  isPasskeyLoggedIn: boolean;
+};
 
-
+type VerificationResponse = {
+  registrationInfo?: {
+    credential: {
+      id: string;
+      publicKey: Uint8Array;
+      counter: number;
+    };
+  };
+};
 
 export default function DashboardPage() {
+  // State management with proper typing
   const [isAvailable, setIsAvailable] = useState<boolean>(false);
-  const [webauthnCredential, setWebauthnCredential] = useState<any>(null);
-  const [credentialWithAssertion, setCredentialWithAssertion] = useState<any>(null);
-
+  const [webauthnCredential, setWebauthnCredential] = useState<object | null>(null);
+  const [credentialWithAssertion, setCredentialWithAssertion] = useState<object | null>(null);
   const [challenge, setChallenge] = useState<string>("");
+  const [session, setSession] = useState<SessionData | null>(null);
+  const [userCredential, setUserCredential] = useState<WebAuthnCredential>({
+    id: "",
+    publicKey: new Uint8Array(),
+    counter: 0,
+  });
+  const [verificationResponse, setVerificationResponse] = useState<VerificationResponse | null>(null);
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<{[key: string]: boolean}>({
+    challenge: false,
+    createCredential: false,
+    verifyCredential: false,
+    getCredential: false,
+    verifyAuthentication: false,
+  });
 
-  const [session, setSession] = useState<any>(null);
-
-  const [userCredential,setUserCredential]= useState<WebAuthnCredential>({id:"",publicKey:new Uint8Array(),counter:0});
-
-  const [verificationResponse, setVerificationResponse] = useState<any>(null);
-
-  const [error, setError] = useState<string>(""); // Error state
-
-
-
-  // Fetch session info
+  // Fetch session info - using a proper loading state and error handling
   useEffect(() => {
     const fetchSession = async () => {
-      const response = await fetch("/api/session");
-      const data = await response.json();
-      setSession(data.session)
+      try {
+        const response = await fetch("/api/session");
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        setSession(data.session);
+      } catch (err) {
+        setError(`Failed to fetch session: ${err instanceof Error ? err.message : String(err)}`);
+        toast.error("Failed to load session data");
+      }
     };
     fetchSession();
-  }, []); // Only runs on mount
+  }, []);
 
   // Check for WebAuthn availability
   useEffect(() => {
-    const check = async () => {
-      const available = await checkWebAuthnAvailability();
-      console.log(available);
-      setIsAvailable(available);
+    const checkAvailability = async () => {
+      try {
+        const available = await checkWebAuthnAvailability();
+        setIsAvailable(available);
+      } catch (err) {
+        console.error("WebAuthn availability check failed:", err);
+      }
     };
-    check();
+    checkAvailability();
   }, []);
 
-  // register
+  // Memoized handlers with useCallback to prevent unnecessary re-renders
+  const handleGenerateChallenge = useCallback(async () => {
+    setIsLoading(prev => ({ ...prev, challenge: true }));
+    try {
+      const data = await getChallenge();
+      setChallenge(data);
+      setError("");
+    } catch (err) {
+      setError(`Failed to generate challenge: ${err instanceof Error ? err.message : String(err)}`);
+      toast.error("Challenge generation failed");
+    } finally {
+      setIsLoading(prev => ({ ...prev, challenge: false }));
+    }
+  }, []);
 
-  const handleGenerateChallenge = async () => {
-    const data = await getChallenge();
-    setChallenge(data);
-  };
+  const handleCreateCredential = useCallback(async () => {
+    if (!challenge) {
+      toast.error("Please generate a challenge first");
+      return;
+    }
+    if (!session?.email) {
+      toast.error("User session email not available");
+      return;
+    }
 
-  const handleCreateCredential = async () => {
+    setIsLoading(prev => ({ ...prev, createCredential: true }));
     try {
       const credential = await registerWebAuthnCredential(
         challenge,
         session.email,
         session.email
       );
-      console.log(credential);
       setWebauthnCredential(credential);
-
-      setError(""); // Clear error if successful
-    } catch (error) {
-      setError(
-        "Error creating WebAuthn credential: " + (error as Error).message
-      ); // Set error message
+      setError("");
+      toast.success("Credential created successfully");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`Error creating WebAuthn credential: ${errorMessage}`);
+      toast.error("Failed to create credential");
+    } finally {
+      setIsLoading(prev => ({ ...prev, createCredential: false }));
     }
-  };
+  }, [challenge, session?.email]);
 
-  const handleVerifyCredential = async () => {
-    const Response = await fetch("/api/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        credential: webauthnCredential,
-        challenge: challenge,
-      }),
-    });
-
-    const result = await Response.json();
-
-    if (result.success) {
-      setVerificationResponse(result.data.verificationResponse);
-      const credential = result.data.verificationResponse.registrationInfo.credential
-
-      setUserCredential({
-        id:credential.id,
-        publicKey:credential.publicKey,
-        counter: credential.counter
-      })
-
-    } else {
-      setError("Error verifying WebAuthn credential: " + result.error);
+  const handleVerifyCredential = useCallback(async () => {
+    if (!webauthnCredential || !challenge) {
+      toast.error("Credential or challenge missing");
+      return;
     }
-  };
 
-  // login
-
-  const handleGetCredential = async () => {
+    setIsLoading(prev => ({ ...prev, verifyCredential: true }));
     try {
-      const credential = await authenticateWithWebAuthn(
-        challenge,
-      );
-      console.log(credential);
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          credential: webauthnCredential,
+          challenge: challenge,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setVerificationResponse(result.data.verificationResponse);
+        const credential = result.data.verificationResponse.registrationInfo.credential;
+
+        setUserCredential({
+          id: credential.id,
+          publicKey: credential.publicKey,
+          counter: credential.counter,
+        });
+        
+        toast.success("Registration verified successfully");
+      } else {
+        throw new Error(result.error || "Verification failed");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`Error verifying WebAuthn credential: ${errorMessage}`);
+      toast.error("Verification failed");
+    } finally {
+      setIsLoading(prev => ({ ...prev, verifyCredential: false }));
+    }
+  }, [webauthnCredential, challenge]);
+
+  const handleGetCredential = useCallback(async () => {
+    if (!challenge) {
+      toast.error("Please generate a challenge first");
+      return;
+    }
+
+    setIsLoading(prev => ({ ...prev, getCredential: true }));
+    try {
+      const credential = await authenticateWithWebAuthn(challenge);
       setCredentialWithAssertion(credential);
-      setError(""); // Clear error if successful
-    } catch (error) {
-      setError(
-        "Error creating WebAuthn credential: " + (error as Error).message
-      ); // Set error message
+      setError("");
+      toast.success("Login credential retrieved");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`Error creating WebAuthn credential: ${errorMessage}`);
+      toast.error("Failed to get credential");
+    } finally {
+      setIsLoading(prev => ({ ...prev, getCredential: false }));
     }
-  };
+  }, [challenge]);
 
-  const handleVerifyAuthentication = async () => {
-    const Response = await fetch("/api/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        assertionCredential:credentialWithAssertion,
-        challenge: challenge,
-        credential: userCredential,
-      }),
-    });
-
-    const result = await Response.json();
-    console.log(result);
-
-    if (result.success) {
-      setVerificationResponse(result.data.verificationResponse);
-    } else {
-      setError("Error verifying WebAuthn credential: " + result.error);
+  const handleVerifyAuthentication = useCallback(async () => {
+    if (!credentialWithAssertion || !challenge || !userCredential?.id) {
+      toast.error("Missing credential or challenge data");
+      return;
     }
-  };
+
+    setIsLoading(prev => ({ ...prev, verifyAuthentication: true }));
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          assertionCredential: credentialWithAssertion,
+          challenge: challenge,
+          credential: userCredential,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setVerificationResponse(result.data.verificationResponse);
+        toast.success("Authentication successful");
+      } else {
+        throw new Error(result.error || "Authentication failed");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`Error verifying authentication: ${errorMessage}`);
+      toast.error("Authentication failed");
+    } finally {
+      setIsLoading(prev => ({ ...prev, verifyAuthentication: false }));
+    }
+  }, [credentialWithAssertion, challenge, userCredential]);
+
+  // Render helper functions
+  const renderSessionInfo = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <InfoCard
+        label="User ID"
+        value={session?.userId}
+      />
+      <InfoCard
+        label="Email"
+        value={session?.email}
+      />
+      <InfoCard
+        label="isLoggedIn"
+        value={session?.isLoggedIn ? "true" : "false"}
+      />
+      <InfoCard
+        label="isPasskeyLoggedIn"
+        value={session?.isPasskeyLoggedIn ? "true" : "false"}
+      />
+    </div>
+  );
+
+  const renderCredentialInfo = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="md:row-span-2 flex flex-col">
+        <div className="p-3 bg-gray-50 rounded-xl flex-1">
+          <p className="text-sm font-medium text-gray-500">PublicKey</p>
+          <p className="bg-gray-50 rounded-xl overflow-y-auto text-sm">
+            {JSON.stringify(userCredential?.publicKey, null, 2)}
+          </p>
+        </div>
+      </div>
+
+      <div className="p-3 bg-gray-50 rounded-xl flex-1">
+        <p className="text-sm font-medium text-gray-500">CredentialId</p>
+        <p className="text-gray-800 break-all">{userCredential?.id}</p>
+      </div>
+
+      <div className="p-3 bg-gray-50 rounded-xl flex-1">
+        <p className="text-sm font-medium text-gray-500">Counter</p>
+        <p className="text-gray-800 break-all">
+          {userCredential?.counter}
+          <span className="text-[0.8rem] italic text-gray-500"> (store in DB)</span>
+        </p>
+      </div>
+    </div>
+  );
+
+  const renderWorkflowButtons = () => (
+    <div className="flex flex-col md:grid grid-cols-2 gap-4 mb-8">
+      <WorkflowButton
+        onClick={handleGenerateChallenge}
+        label="1，4. Generate Challenge"
+        isLoading={isLoading.challenge}
+      />
+      <WorkflowButton
+        onClick={handleCreateCredential}
+        label="2. Create Credential"
+        isLoading={isLoading.createCredential}
+        disabled={!challenge}
+      />
+      <WorkflowButton
+        onClick={handleVerifyCredential}
+        label="3. Verify Registration (register)"
+        isLoading={isLoading.verifyCredential}
+        disabled={!webauthnCredential || !challenge}
+      />
+      
+      <WorkflowButton
+        onClick={handleGetCredential}
+        label="5. Create Credential (Login)"
+        isLoading={isLoading.getCredential}
+        disabled={!verificationResponse}
+      />
+      <WorkflowButton
+        onClick={handleVerifyAuthentication}
+        label="6. Verify Authentication (Login)"
+        isLoading={isLoading.verifyAuthentication}
+        disabled={!credentialWithAssertion || !challenge || !userCredential?.id}
+      />
+    </div>
+  );
+
+  const renderResponses = () => (
+    <div className="space-y-4">
+      <ResponseCard
+        title="Passkey Available"
+        content={
+          <p className={isAvailable ? "text-green-600" : "text-red-600"}>
+            {isAvailable ? "Available" : "Unavailable"}
+          </p>
+        }
+      />
+
+      <ResponseCard
+        title="Challenge"
+        content={
+          challenge ? (
+            <p className="bg-gray-50 rounded-xl overflow-x-auto text-sm">{challenge}</p>
+          ) : (
+            <p className="text-gray-500 text-sm">No Challenge created yet</p>
+          )
+        }
+      />
+
+      <ResponseCard
+        title="Credential"
+        content={
+          webauthnCredential ? (
+            <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
+              {JSON.stringify(webauthnCredential, null, 2)}
+            </pre>
+          ) : (
+            <p className="text-gray-500 text-sm">No credentials created yet</p>
+          )
+        }
+      />
+
+      <ResponseCard
+        title="Verification Response"
+        content={
+          verificationResponse ? (
+            <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm max-h-96">
+              {JSON.stringify(verificationResponse, null, 2)}
+            </pre>
+          ) : (
+            <p className="text-gray-500 text-sm">No verification response yet</p>
+          )
+        }
+      />
+
+      <ResponseCard
+        title="Credential With Assertion"
+        content={
+          credentialWithAssertion ? (
+            <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
+              {JSON.stringify(credentialWithAssertion, null, 2)}
+            </pre>
+          ) : (
+            <p className="text-gray-500 text-sm">No credentials with assertion yet</p>
+          )
+        }
+      />
+    </div>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 md:px-20 py-8 md:py-12">
-      <div className="flex justify-between items-center  mb-6">
-        <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">
-          Dashboard
-        </h2>
+    <div className="max-w-4xl mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl md:text-3xl font-semibold text-gray-800">Dashboard</h2>
         <LogoutButton />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm p-6 md:p-8 border border-gray-100">
-        <h3 className="text-xl font-semibold text-gray-800 mb-5">
-          User Session
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">User ID</p>
-            <p className="text-gray-800 truncate overflow-y-auto">{session?.userId}</p>
-          </div>
+        <Section title="User Session">
+          {renderSessionInfo()}
+        </Section>
 
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">Email</p>
-            <p className="text-gray-800 truncate">{session?.email}</p>
-          </div>
-
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">isLoggedIn</p>
-            <p className="text-gray-800 truncate">{session?.isLoggedIn? "ture": "false"}</p>
-          </div>
-
-          <div className="p-3 bg-gray-50 rounded-xl">
-            <p className="text-sm font-medium text-gray-500">isPasskeyLoggedIn</p>
-            <p className="text-gray-800 truncate">{session?.isPasskeyLoggedIn? "ture": "false"}</p>
-          </div>
-        </div>
-
-        {/* line */}
-        <div className="my-8 border-t border-gray-200"></div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-5">
-          Passkey Work Flow
-        </h3>
-        {/* button  */}
-        <div className="flex flex-col md:grid grid-cols-2 gap-4 mb-8">
-          <button
-            onClick={handleGenerateChallenge}
-            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <span className="block text-sm font-semibold">
-              1. Generate Challenge
-            </span>
-          </button>
-
-          <button
-            onClick={handleCreateCredential}
-            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <span className="block text-sm font-semibold">
-              2. Create Credential
-            </span>
-          </button>
-
-          <button
-            onClick={handleVerifyCredential}
-            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <span className="block text-sm font-semibold">
-              3. Verify Registration (register)
-            </span>
-          </button>
-
-          <button
-            onClick={handleGenerateChallenge}
-            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <span className="block text-sm font-semibold">
-              4. Generate Challenge (Login)
-            </span>
-          </button>
-
-          <button
-            onClick={handleGetCredential}
-            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <span className="block text-sm font-semibold">
-              5. Create Credential (Login)
-            </span>
-          </button>
-
-          <button
-            onClick={handleVerifyAuthentication}
-            className="flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200"
-          >
-            <span className="block text-sm font-semibold">
-              6. Verify Authentication (Login)
-            </span>
-          </button>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 p-4 rounded-xl flex items-center">
-            <span className="text-red-700 text-sm">{error}</span>
-          </div>
-        )}
-
-        <div className="my-8 border-t border-gray-200"></div>
-
-        <h3 className="text-xl font-semibold text-gray-800 mb-5">
-          User Credential
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* PublicKey Section */}
-          <div className="md:row-span-2 flex flex-col">
-            <div className="p-3 bg-gray-50 rounded-xl flex-1">
-              <p className="text-sm font-medium text-gray-500">PublicKey</p>
-              <p className="bg-gray-50 rounded-xl overflow-y-auto text-sm ">
-                {JSON.stringify(userCredential?.publicKey, null, 2)}
-              </p>
+        <Divider />
+        
+        <Section title="Passkey Work Flow">
+          {renderWorkflowButtons()}
+          {error && (
+            <div className="bg-red-50 p-4 rounded-xl flex items-center">
+              <span className="text-red-700 text-sm">{error}</span>
             </div>
-          </div>
+          )}
+        </Section>
 
-          {/* CredentialId Section */}
-          <div className="p-3 bg-gray-50 rounded-xl flex-1">
-            <p className="text-sm font-medium text-gray-500">CredentialId</p>
-            <p className="text-gray-800 break-all">{userCredential?.id}</p>
-          </div>
+        <Divider />
+        
+        <Section title="User Credential">
+          {renderCredentialInfo()}
+        </Section>
 
-          {/* Counter Section */}
-          <div className="p-3 bg-gray-50 rounded-xl flex-1">
-            <p className="text-sm font-medium text-gray-500">Counter</p>
-            <p className="text-gray-800 break-all">
-              {userCredential?.counter}
-              <span className="text-[0.8rem] italic text-gray-500">
-                {" "}
-                (store in DB)
-              </span>
-            </p>
-          </div>
-        </div>
-
-        {/* line */}
-
-        <div className="my-8 border-t border-gray-200"></div>
-        <h3 className="text-xl font-semibold text-gray-800 mb-5">
-          Interact Response
-        </h3>
-
-        {/* Credential and Verification Response */}
-        <div className="space-y-4">
-          <div className="bg-gray-50 rounded-xl p-2">
-            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto text-sm">
-              <h3 className="text-base font-semibold text-gray-500 mb-2">
-                Passkey Available
-              </h3>
-              <p className={isAvailable ? "text-green-600" : "text-red-600"}>
-                {isAvailable ? "Available" : "Unavailable"}
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-2">
-            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
-              <h3 className="text-base font-semibold text-gray-500 mb-2">
-                Challenge
-              </h3>
-              {challenge ? (
-                <p className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
-                  {challenge}
-                </p>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No Challenge created yet
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-2">
-            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
-              <h3 className="text-lg font-semibold text-gray-500 mb-2">
-                Credential
-              </h3>
-              {webauthnCredential ? (
-                <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
-                  {JSON.stringify(webauthnCredential, null, 2)}
-                </pre>
-              ) : (
-                <p className="text-gray-500 text-sm ">
-                  No credentials created yet
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-2">
-            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
-              <h3 className="text-lg font-semibold text-gray-500 mb-2">
-                Verification Response
-              </h3>
-              {webauthnCredential ? (
-                <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm max-h-96">
-                  {JSON.stringify(verificationResponse, null, 2)}
-                </pre>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No verification response yet
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="bg-gray-50 rounded-xl p-2">
-            <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto">
-              <h3 className="text-lg font-semibold text-gray-500 mb-2">
-              Credential With Assertion
-              </h3>
-              {credentialWithAssertion ? (
-                <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
-                  {JSON.stringify(credentialWithAssertion, null, 2)}
-                </pre>
-              ) : (
-                <p className="text-gray-500 text-sm ">
-                  No credentials created yet
-                </p>
-              )}
-            </div>
-          </div>
-
-
-        </div>
+        <Divider />
+        
+        <Section title="Interact Response">
+          {renderResponses()}
+        </Section>
       </div>
     </div>
   );
 }
+
+// Reusable UI components
+type SectionProps = {
+  title: string;
+  children: React.ReactNode;
+};
+
+const Section = ({ title, children }: SectionProps) => (
+  <>
+    <h3 className="text-xl font-semibold text-gray-800 mb-5">{title}</h3>
+    {children}
+  </>
+);
+
+const Divider = () => <div className="my-8 border-t border-gray-200"></div>;
+
+type InfoCardProps = {
+  label: string;
+  value: string | undefined;
+};
+
+const InfoCard = ({ label, value }: InfoCardProps) => (
+  <div className="p-3 bg-gray-50 rounded-xl">
+    <p className="text-sm font-medium text-gray-500">{label}</p>
+    <p className="text-gray-800 truncate overflow-y-auto">{value}</p>
+  </div>
+);
+
+type WorkflowButtonProps = {
+  onClick: () => Promise<void>;
+  label: string;
+  isLoading: boolean;
+  disabled?: boolean;
+};
+
+const WorkflowButton = ({ onClick, label, isLoading, disabled = false }: WorkflowButtonProps) => (
+  <button
+    onClick={onClick}
+    disabled={disabled || isLoading}
+    className={`flex-1 py-3 px-6 bg-white border border-blue-500 rounded-xl text-blue-500 hover:bg-blue-50 transition-colors duration-200 relative ${
+      disabled ? "opacity-50 cursor-not-allowed" : ""
+    }`}
+  >
+    <span className="block text-sm font-semibold">
+      {isLoading ? "Processing..." : label}
+    </span>
+  </button>
+);
+
+type ResponseCardProps = {
+  title: string;
+  content: React.ReactNode;
+};
+
+const ResponseCard = ({ title, content }: ResponseCardProps) => (
+  <div className="bg-gray-50 rounded-xl p-2">
+    <div className="bg-gray-50 rounded-xl p-2 overflow-x-auto text-sm">
+      <h3 className="text-base font-semibold text-gray-500 mb-2">{title}</h3>
+      {content}
+    </div>
+  </div>
+);
