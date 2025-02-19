@@ -5,6 +5,7 @@ import { getSession } from "@/lib/session";
 import type { 
   PublicKeyCredentialWithAssertionJSON,
 } from "@github/webauthn-json";
+import { count } from "console";
 
 // POST /api/register
 export async function POST(request: Request) {
@@ -25,28 +26,19 @@ export async function POST(request: Request) {
 
     const { assertionCredential, challenge,credential } = body;
 
-    console.log(assertionCredential)
-    console.log(challenge)
-    console.log(credential)
 
 
+    const publicKeyArray = new Uint8Array(Object.values(credential.publicKey));
+    // Verify the registration
 
-    // // Type check for credential
-    // if (typeof assertionCredential !== 'object') {
-    //   return NextResponse.json(
-    //     {
-    //       success: false,
-    //       error: "Invalid assertionCredential format",
-    //     },
-    //     { status: 400 }
-    //   );
-    // }
-
-    // Verify the login
     const verificationResponse = await verifyAuthentication(
       assertionCredential as PublicKeyCredentialWithAssertionJSON,
       challenge,
-      credential,
+      {
+        id: credential.id,
+        publicKey:publicKeyArray,
+        counter: credential.counter,
+      },
     );
     
     if (verificationResponse.verified){
@@ -54,8 +46,6 @@ export async function POST(request: Request) {
       session.isPasskeyLoggedIn=true
       await session.save();
     }
-
-    console.log(verificationResponse)
 
 
     // Return success response
