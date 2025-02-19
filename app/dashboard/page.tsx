@@ -93,19 +93,13 @@ export default function DashboardPage() {
 
     const result = await Response.json();
 
-    console.log(result.data.verificationResponse.registrationInfo.credential);
-
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
       const credential = result.data.verificationResponse.registrationInfo.credential
-      console.log(encodeBase64(new Uint8Array(credential.id)));
-
-      const publicKeyArray = new Uint8Array(Object.values(credential.publicKey));
-      console.log(publicKeyArray);
 
       setUserCredential({
-        id:credential.id+"==",
-        publicKey:publicKeyArray,
+        id:credential.id,
+        publicKey:credential.publicKey,
         counter: credential.counter
       })
 

@@ -5,7 +5,6 @@ import { getSession } from "@/lib/session";
 import type { 
   PublicKeyCredentialWithAssertionJSON,
 } from "@github/webauthn-json";
-import { count } from "console";
 
 // POST /api/register
 export async function POST(request: Request) {
