@@ -9,6 +9,7 @@ import {
 import LogoutButton from "@/components/LogoutButton";
 import { getChallenge } from "../actions/auth";
 
+import type {WebAuthnCredential } from "@simplewebauthn/server"
 
 
 
@@ -21,34 +22,17 @@ export default function DashboardPage() {
 
   const [session, setSession] = useState<any>(null);
 
-  const [userCredential,setUserCredential]= useState<any>(null);
+  const [userCredential,setUserCredential]= useState<WebAuthnCredential>({id:"",publicKey:new Uint8Array(),counter:0});
 
   const [verificationResponse, setVerificationResponse] = useState<any>(null);
 
   const [error, setError] = useState<string>(""); // Error state
 
 
-  function binaryToBase64url(bytes: Uint8Array): string {
-    // Convert Uint8Array to Base64 string
-    const base64String = btoa(String.fromCharCode(...bytes));
-  
-    // Convert Base64 to Base64URL
-    return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); // Remove padding
-  }
 
-  function uint8ArrayToBase64url(bytes: Uint8Array): string {
-    // Convert Uint8Array to binary string safely
-    let binaryString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
-  
-    // Encode binary string to Base64
-    const base64String = btoa(binaryString);
-  
-    // Convert Base64 to Base64URL format (removing padding)
-    return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  function encodeBase64(input: Uint8Array): string {
+    return Buffer.from(input).toString('base64');
   }
-  
-  
-
 
   // Fetch session info
   useEffect(() => {
@@ -114,14 +98,16 @@ export default function DashboardPage() {
     if (result.success) {
       setVerificationResponse(result.data.verificationResponse);
       const credential = result.data.verificationResponse.registrationInfo.credential
+      console.log(encodeBase64(new Uint8Array(credential.id)));
+
+      const publicKeyArray = new Uint8Array(Object.values(credential.publicKey));
+      console.log(publicKeyArray);
 
       setUserCredential({
-        id:binaryToBase64url(credential.id),
-        publicKey:uint8ArrayToBase64url(credential.publicKey),
+        id:credential.id+"==",
+        publicKey:publicKeyArray,
         counter: credential.counter
       })
-
-      
 
     } else {
       setError("Error verifying WebAuthn credential: " + result.error);

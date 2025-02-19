@@ -5,7 +5,8 @@ import type {
   VerifiedRegistrationResponse,
 } from "@simplewebauthn/server";
 
-import type {WebAuthnCredential } from "@simplewebauthn/server"
+
+import type {WebAuthnCredential} from "@simplewebauthn/server"
 
 
 import crypto from "crypto";
