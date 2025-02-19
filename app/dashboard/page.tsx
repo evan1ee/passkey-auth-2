@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { toast } from "react-hot-toast"; // Assuming you use toast for notifications
+import toast, { Toaster } from 'react-hot-toast';
 import {
   checkWebAuthnAvailability,
   registerWebAuthnCredential,
@@ -42,6 +42,8 @@ export default function DashboardPage() {
     counter: 0,
   });
   const [verificationResponse, setVerificationResponse] = useState<VerificationResponse | null>(null);
+  const [verifyAuthenticationResponse, setVerifyAuthenticationResponse] = useState<any | null>(null);
+
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<{[key: string]: boolean}>({
     challenge: false,
@@ -222,7 +224,8 @@ export default function DashboardPage() {
       const result = await response.json();
 
       if (result.success) {
-        setVerificationResponse(result.data.verificationResponse);
+        setVerifyAuthenticationResponse(result.data.verificationResponse);
+        
         toast.success("Authentication successful");
       } else {
         throw new Error(result.error || "Authentication failed");
@@ -342,7 +345,7 @@ export default function DashboardPage() {
       />
 
       <ResponseCard
-        title="Credential"
+        title="Credential With Attestation (register)"
         content={
           webauthnCredential ? (
             <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
@@ -355,7 +358,7 @@ export default function DashboardPage() {
       />
 
       <ResponseCard
-        title="Verification Response"
+        title="Verification Registration Response"
         content={
           verificationResponse ? (
             <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm max-h-96">
@@ -368,7 +371,7 @@ export default function DashboardPage() {
       />
 
       <ResponseCard
-        title="Credential With Assertion"
+        title="Credential With Assertion (login)"
         content={
           credentialWithAssertion ? (
             <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm">
@@ -376,6 +379,19 @@ export default function DashboardPage() {
             </pre>
           ) : (
             <p className="text-gray-500 text-sm">No credentials with assertion yet</p>
+          )
+        }
+      />
+
+      <ResponseCard
+        title="Verification Authentication Response"
+        content={
+          verifyAuthenticationResponse ? (
+            <pre className="bg-gray-50 rounded-xl overflow-x-auto text-sm max-h-96">
+              {JSON.stringify(verifyAuthenticationResponse, null, 2)}
+            </pre>
+          ) : (
+            <p className="text-gray-500 text-sm">No verification response yet</p>
           )
         }
       />
@@ -406,7 +422,8 @@ export default function DashboardPage() {
         </Section>
 
         <Divider />
-        
+        <Toaster />
+
         <Section title="User Credential">
           {renderCredentialInfo()}
         </Section>
