@@ -30,10 +30,6 @@ export default function DashboardPage() {
 
 
 
-  function encodeBase64(input: Uint8Array): string {
-    return Buffer.from(input).toString('base64');
-  }
-
   // Fetch session info
   useEffect(() => {
     const fetchSession = async () => {
