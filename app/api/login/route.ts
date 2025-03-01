@@ -2,9 +2,7 @@ import { NextResponse } from "next/server";
 import { verifyAuthentication } from "@/lib/auth";
 import { getSession } from "@/lib/session";
 
-import type { 
-  PublicKeyCredentialWithAssertionJSON,
-} from "@github/webauthn-json";
+
 
 // POST /api/register
 export async function POST(request: Request) {
@@ -31,7 +29,7 @@ export async function POST(request: Request) {
     // Verify the registration
 
     const verificationResponse = await verifyAuthentication(
-      assertionCredential as PublicKeyCredentialWithAssertionJSON,
+      assertionCredential,
       challenge,
       {
         id: credential.id,
