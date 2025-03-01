@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@github/webauthn-json": "^2.1.1",
     "@prisma/client": "6.3.1",
     "@radix-ui/react-slot": "^1.1.2",
     "@simplewebauthn/browser": "^13.1.0",
